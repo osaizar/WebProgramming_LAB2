@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import sqlite3
-from classes import User
+from User import User
 
 def dict_factory(cursor, row): # return dictionary instead of tuple
     d = {}
