@@ -41,3 +41,50 @@ def insert_message(message, toId, fromId):
         return True
     else:
         return False
+"
+## Funciones nuevas Isma
+
+def insert_token(token, userId):
+    cur = run_query("INSERT INTO Session (token, userId)\
+                    VALUES(%s,%s)" % (token,userId))
+    if cur.rowcount == 1:
+        return True
+    else:
+        return False
+
+def insert_user(user):
+    cur = run_query("INSERT INTO User (id, firstname, familyname, gender, city, \
+                    country, email, password) \
+                    VALUES(%s,%s,%s,%s,%s,%s,%s)" % (User.firstname, \
+                    User.familyname, User.gender, User.city, User.country, \
+                    User.email, User.password))
+    if cur.rowcount == 1:
+        return True
+    else:
+        return False
+
+def change_user_password(userId, password):
+    cur = run_query("UPDATE User SET password = %s WHERE id = %s" % (password,userId))
+
+    if cur.rowcount == 1:
+        return True
+    else:
+        return False
+
+# not finished yet!!
+def get_messages_by_user(userId):
+    cur = run_query("SELECT msg, fromId FROM Message WHERE fromId = %s" % userId)
+    i = 0;
+    for msg in cur:
+        res = cur.fetchone()
+        result[i][1] = res["msg"]
+        result[i][2] = res["fromId"]
+        i += 1
+
+    return result
+    
+def get_email_by_id(userId):
+    cur = run_query("SELECT email FROM User WHERE id = %s" % userId)
+    result = cur.fetchone()
+
+    return result["email"]
