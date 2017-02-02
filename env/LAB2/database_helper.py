@@ -14,8 +14,7 @@ def run_query(query):
     conn.row_factory = dict_factory # override function
     cur = conn.cursor()
     cur.execute(query)
-    conn.commit() # ?
-    # close stuff?
+    conn.commit()
     return cur
 
 
@@ -28,13 +27,16 @@ def create_tables():
     c.close()
     conn.close()
 
+# Public functions
+
 def get_user_by_email(email):
     cur = run_query("SELECT * FROM User WHERE User.email = '%s'" % email)
-    result = cur.fetchone()
-    user = User(result["firstname"], result["familyname"], result["email"],\
-                        result["city"], result["country"], result["gender"], result["password"])
+    if cur.rowcount < 1:
+        return None
 
-    print str(user)
+    result = cur.fetchone()
+    user = User(result["email"], result["password"], result["firstname"],\
+                        result["familyname"], result["gender"], result["city"], result["country"])
 
     return user
 
@@ -48,6 +50,8 @@ def delete_token(token):
 
 def get_userId_by_token(token):
     cur = run_query("SELECT userId FROM Session WHERE token = '%s'" % token)
+    if cur.rowcount < 1:
+        return None
     result = cur.fetchone()
 
     return result["userId"]
@@ -59,7 +63,7 @@ def insert_message(message, toId, fromId):
         return True
     else:
         return False
-## Funciones nuevas Isma
+
 
 def insert_token(token, userId):
     cur = run_query("INSERT INTO Session (token, userId)\
@@ -88,9 +92,10 @@ def change_user_password(userId, password):
     else:
         return False
 
-# not finished yet!!
 def get_messages_by_user(userId):
     cur = run_query("SELECT msg, toId, fromId FROM Message WHERE fromId = %s" % userId)
+    if cur.rowcount < 1:
+        return None
     msgs = cur.fetchall()
     result = []
     for msg in msgs:
@@ -100,9 +105,11 @@ def get_messages_by_user(userId):
 
 def get_user_by_id(userId):
     cur = run_query("SELECT * FROM User WHERE User.id = %s" % userId)
+    if cur.rowcount < 1:
+        return None
     result = cur.fetchone()
-    user = User(result["firstname"], result["familyname"], result["email"],\
-                        result["city"], result["country"], result["gender"], result["password"])
+    user = User(result["email"], result["password"], result["firstname"],\
+                        result["familyname"], result["gender"], result["city"], result["country"])
 
     print str(user)
 
@@ -110,6 +117,8 @@ def get_user_by_id(userId):
 
 def get_token(userId):
     cur = run_query("SELECT * FROM Session WHERE userId = %s" % userId)
+    if cur.rowcount < 1:
+        return None
 
     result = cur.fetchone()
 
@@ -119,4 +128,4 @@ def get_token(userId):
 def create_session(token, userId):
     conn = sqlite3.connect("database.db")
     c = conn.cursor()
-    c.execute("INSERT INTO Session VALUES (?,?)", token, userId)
+    c.execute("INSERT INTO Session VALUES ('%s',%s)" % (token, userId))

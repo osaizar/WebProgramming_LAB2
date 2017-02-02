@@ -1,7 +1,7 @@
 
 class User(object):
 
-    def __init__(self, firstname, familyname, email, city, country, gender, password):
+    def __init__(self, email, password, firstname, familyname, gender, city, country):
         self.firstname = firstname
         self.familyname = familyname
         self.email = email
@@ -12,6 +12,18 @@ class User(object):
 
     def User(self):
         return self
+
+    def createJSON(self):
+        data = {}
+        data["firstname"] = self.firstname
+        data["familyname"] = self.familyname
+        data["email"] = self.email
+        data["city"] = self.city
+        data["country"] = self.country
+        data["gender"] = self.gender
+        data["password"] = self.password
+
+        return json.dumps(data)
 
     def __str__(self):
         return self.firstname+" "+self.email
