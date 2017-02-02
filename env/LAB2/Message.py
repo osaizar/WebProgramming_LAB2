@@ -1,3 +1,5 @@
+import json
+
 class Message(object):
 
     def __init__(self, writer, reader, content):

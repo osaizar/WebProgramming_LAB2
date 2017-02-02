@@ -29,16 +29,13 @@ def create_tables():
 
 # Public functions
 
-def get_user_by_email(email):
-    cur = run_query("SELECT * FROM User WHERE User.email = '%s'" % email)
-    if cur.rowcount < 1:
-        return None
+def get_userId_by_email(email): #TODO: check get
+    cur = run_query("SELECT id FROM User WHERE User.email = '%s'" % email)
 
     result = cur.fetchone()
-    user = User(result["email"], result["password"], result["firstname"],\
-                        result["familyname"], result["gender"], result["city"], result["country"])
+    userId = result["id"]
 
-    return user
+    return userId
 
 
 def delete_token(token):
@@ -50,15 +47,17 @@ def delete_token(token):
 
 def get_userId_by_token(token):
     cur = run_query("SELECT userId FROM Session WHERE token = '%s'" % token)
-    if cur.rowcount < 1:
-        return None
+
     result = cur.fetchone()
 
     return result["userId"]
 
-def insert_message(message):
-    toId = get_user_by_email(message.reader).id
-    fromId = get_user_by_email(message.writer).id
+def insert_message(message): #TODO: Check users
+    toId = get_userId_by_email(message.reader)
+    fromId = get_userId_by_email(message.writer)
+
+    print "[Message] To: "+str(toId)+" From:"+str(fromId) # debug
+
     cur = run_query("INSERT INTO Message (msg, toId, fromId)\
                     VALUES ('%s',%s, %s)" % (message.content, toId, fromId))
     if cur.rowcount == 1:
@@ -76,11 +75,11 @@ def insert_token(token, userId):
         return False
 
 def insert_user(user):
-    cur = run_query("INSERT INTO User (id, firstname, familyname, gender, city, \
+    cur = run_query("INSERT INTO User (firstname, familyname, gender, city, \
                     country, email, password) \
-                    VALUES('%s','%s','%s','%s','%s','%s','%s')" % (User.firstname, \
-                    User.familyname, User.gender, User.city, User.country, \
-                    User.email, User.password))
+                    VALUES('%s','%s','%s','%s','%s','%s','%s')" % (user.firstname, \
+                    user.familyname, user.gender, user.city, user.country, \
+                    user.email, user.password))
     if cur.rowcount == 1:
         return True
     else:
@@ -96,8 +95,7 @@ def change_user_password(userId, password):
 
 def get_messages_by_user(userId):
     cur = run_query("SELECT msg, toId, fromId FROM Message WHERE toId = %s" % userId)
-    if cur.rowcount < 1:
-        return None
+
     msgs = cur.fetchall()
     result = []
     for msg in msgs:
@@ -109,27 +107,16 @@ def get_messages_by_user(userId):
 
 def get_user_by_id(userId):
     cur = run_query("SELECT * FROM User WHERE User.id = %s" % userId)
-    if cur.rowcount < 1:
-        return None
+
     result = cur.fetchone()
     user = User(result["email"], result["password"], result["firstname"],\
                         result["familyname"], result["gender"], result["city"], result["country"])
-
-    print str(user)
 
     return user
 
 def get_token(userId):
     cur = run_query("SELECT * FROM Session WHERE userId = %s" % userId)
-    if cur.rowcount < 1:
-        return None
 
     result = cur.fetchone()
 
     return result["token"]
-
-
-def create_session(token, userId):
-    conn = sqlite3.connect("database.db")
-    c = conn.cursor()
-    c.execute("INSERT INTO Session VALUES ('%s',%s)" % (token, userId))

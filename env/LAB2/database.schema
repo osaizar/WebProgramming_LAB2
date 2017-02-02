@@ -21,6 +21,6 @@ CREATE TABLE Message
           FOREIGN KEY(toId) REFERENCES User(id));
 
 CREATE TABLE Session
-          (token TEXT PRIMARY KEY AUTOINCREMENT,
+          (token TEXT PRIMARY KEY,
            userId INTEGER,
            FOREIGN KEY(userId) REFERENCES User(id));

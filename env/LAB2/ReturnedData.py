@@ -2,15 +2,10 @@ import json
 
 class ReturnedData(object):
 
-    def __init__(self, success, message, data):
+    def __init__(self, success, message, data = []):
         self.success = success
         self.message = message
         self.data = data
-
-    def __init__(self, success, message):
-        self.success = success
-        self.message = message
-        self.data = []
 
     def addToData(self, node):
         self.data.append(node)
