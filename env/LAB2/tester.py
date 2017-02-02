@@ -90,3 +90,12 @@ def test_server():
 
     response = server.get_user_messages_by_email("token1","oier@mail.com1")
     print response
+
+def test_error():
+    user = db.get_user_by_id(200)
+    if user:
+        print user.email
+    else:
+        print user
+
+test_error()
