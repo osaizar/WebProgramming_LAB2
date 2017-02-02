@@ -56,9 +56,11 @@ def get_userId_by_token(token):
 
     return result["userId"]
 
-def insert_message(message, toId, fromId):
+def insert_message(message):
+    toId = get_user_by_email(message.reader).id
+    fromId = get_user_by_email(message.writer).id
     cur = run_query("INSERT INTO Message (msg, toId, fromId)\
-                    VALUES ('%s',%s, %s)" % (message, toId, fromId))
+                    VALUES ('%s',%s, %s)" % (message.content, toId, fromId))
     if cur.rowcount == 1:
         return True
     else:
@@ -93,13 +95,15 @@ def change_user_password(userId, password):
         return False
 
 def get_messages_by_user(userId):
-    cur = run_query("SELECT msg, toId, fromId FROM Message WHERE fromId = %s" % userId)
+    cur = run_query("SELECT msg, toId, fromId FROM Message WHERE toId = %s" % userId)
     if cur.rowcount < 1:
         return None
     msgs = cur.fetchall()
     result = []
     for msg in msgs:
-        result.append(Message(msg["fromId"],msg["toId"],msg["msg"]))
+        writer = get_user_by_id(msg["fromId"])
+        reader = get_user_by_id(userId)
+        result.append(Message(writer.email,reader.email,msg["msg"]))
 
     return result
 

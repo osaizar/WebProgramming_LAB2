@@ -22,12 +22,12 @@ def sign_up(email, password, firstname, familyname, gender, city, country):
 
 
 
-
 def sign_out():
 
 
 def change_password():
 
+# Empieza Isma
 
 def get_user_data_by_token():
 
@@ -38,7 +38,20 @@ def get_user_data_by_email():
 def get_user_messages_by_token():
 
 
-def get_user_messages_by_email():
+def get_user_messages_by_email(token,email):
+    if get_userId_by_token(token) == None:
+        return ReturnedData(False, "Invalid Token", None).createJSON()
+    else:
+        user = get_user_by_email(email)
+        if user == None:
+            return ReturnedData(False, "Invalid email", None).createJSON()
+        else:
+            messages = get_messages_by_user(user.id)
+            rData = ReturnedData(True, "Messages found")
+            for msg in messages:
+                rData.addToData(msg.createJSON())
+
+            return rData.createJSON()
 
 
 def post_message():

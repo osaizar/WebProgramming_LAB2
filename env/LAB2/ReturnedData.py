@@ -7,10 +7,18 @@ class ReturnedData(object):
         self.message = message
         self.data = data
 
-    def createJSON(self):
-        data = {}
-        data["success"] = self.success
-        data["message"] = self.message
-        data["data"] = self.data
+    def __init__(self, success, message):
+        self.success = success
+        self.message = message
+        self.data = []
 
-        return json.dumps(data)
+    def addToData(self, node):
+        self.data.append(node)
+
+    def createJSON(self):
+        rdata = {}
+        rdata["success"] = self.success
+        rdata["message"] = self.message
+        rdata["data"] = self.data
+
+        return json.dumps(rdata)
