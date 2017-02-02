@@ -1,15 +1,31 @@
 #!/usr/bin/python
 
 import database_helper as db
+import string
+import random
 from User import User
 from Message import Message
 from ReturnedData import ReturnedData
 
 #app = Flask(__name__)
 
+def token_generator(size=10, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
 
-def sign_in():
-    pass
+
+def sign_in(email, password):
+    userId = db.get_userId_by_email(email)
+    if userId == None:
+        return ReturnedData(False, "Email not found", None).createJSON()
+    elif db.get_user_by_id(userIds).password != password:
+        return ReturnedData(False, "The password is not correct", None).createJSON()
+    else:
+        token = token_generator()
+        if db.insert_token(token, userId):
+            return ReturnedData(True, "User signed in", token).createJSON() # TODO: Hay que pasar token a json?
+        else:
+            return ReturnedData(False, "Database error", None).createJSON()
+
 
 
 def sign_up(email, password, firstname, familyname, gender, city, country):
@@ -24,12 +40,24 @@ def sign_up(email, password, firstname, familyname, gender, city, country):
             return ReturnedData(False, "Database error", None).createJSON()
 
 
-def sign_out():
-    pass
+def sign_out(token):
+    if db.delete_token(token):
+        return ReturnedData(True, "Signed out", None).createJSON()
+    else:
+        return ReturnedData(False, "Database error", None).createJSON()
 
 
-def change_password():
-    pass
+def change_password(token, old_password, new_password):
+    userId = db.get_userId_by_token(token)
+    if userId == None:
+        return ReturnedData(False, "The token is not correct", None).createJSON()
+    elif db.get_user_by_id(userIds).password != old_password:
+        return ReturnedData(False, "The password is not correct", None).createJSON()
+    else:
+        if db.change_user_password(userId, new_password):
+            return ReturnedData(True, "Password changed", None).createJSON()
+        else:
+            return ReturnedData(False, "Database error", None).createJSON()
 
 # Empieza Isma
 
