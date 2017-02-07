@@ -63,15 +63,42 @@ def change_password(token, old_password, new_password):
 
 
 def get_user_data_by_token():
-    pass
+    if userId = db.get_userId_by_token(token) == None:
+        return ReturnedData(False, "Invalid Token", None).createJSON()
+    else:
+        if userId == None:
+            return ReturnedData(False, "Invalid email", None).createJSON()
+        else:
+            user = db.get_user_by_id(userId)
+
+            return ReturnedData(True, "User found", user)
+
 
 
 def get_user_data_by_email():
-    pass
+    userId = db.get_userId_by_email(email) == None:
+
+    if userId == None:
+        return ReturnedData(False, "Invalid email", None).createJSON()
+    else:
+        user = db.get_user_by_id(userId)
+        return ReturnedData(True, "User found", user)
 
 
-def get_user_messages_by_token():
-    pass
+
+def get_user_messages_by_token(token):
+    userId = db.get_userId_by_token(token)
+
+    if userId == None:
+        return ReturnedData(False, "Invalid Token", None).createJSON()
+    else:
+        messages = db.get_messages_by_user(userId)
+        rData = ReturnedData(True, "Messages found")
+        for msg in messages:
+            rData.addToData(msg.createJSON())
+
+        return rData.createJSON()  # Funciona?
+
 
 
 def get_user_messages_by_email(token, email):
@@ -79,7 +106,7 @@ def get_user_messages_by_email(token, email):
         return ReturnedData(False, "Invalid Token", None).createJSON()
     else:
         userId = db.get_userId_by_email(email)
-        if user == None:
+        if user == None: # no deberia ser userId aqui?
             return ReturnedData(False, "Invalid email", None).createJSON()
         else:
             messages = db.get_messages_by_user(userId)
@@ -90,5 +117,14 @@ def get_user_messages_by_email(token, email):
             return rData.createJSON()  # Funciona?
 
 
-def post_message():
-    pass
+def post_message(message, reader, writer):
+    msg = Message(writer, reader, message)
+    toId = get_userId_by_email(msg.reader)
+    if toId == None:
+        return ReturnedData(False, "Invalid reader", None).createJSON()
+    fromId = get_userId_by_email(msg.writer)
+    else if fromId == None:
+        return ReturnedData(False, "Invalid writer", None).createJSON()
+    else
+        db.insert_message(msg)
+        return ReturnedData(True, "Message sent", None).createJSON()
