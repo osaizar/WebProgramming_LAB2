@@ -9,7 +9,7 @@ from ReturnedData import ReturnedData
 
 #app = Flask(__name__)
 
-def token_generator(size=10, chars=string.ascii_uppercase + string.digits):
+def token_generator(size=15, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 
@@ -22,7 +22,7 @@ def sign_in(email, password):
     else:
         token = token_generator()
         if db.insert_token(token, userId):
-            return ReturnedData(True, "User signed in", token).createJSON() # TODO: Hay que pasar token a json?
+            return ReturnedData(True, "User signed in", token).createJSON()
         else:
             return ReturnedData(False, "Database error", None).createJSON()
 
@@ -59,10 +59,8 @@ def change_password(token, old_password, new_password):
         else:
             return ReturnedData(False, "Database error", None).createJSON()
 
-# Empieza Isma
 
-
-def get_user_data_by_token():
+def get_user_data_by_token(token):
     if userId = db.get_userId_by_token(token) == None:
         return ReturnedData(False, "Invalid Token", None).createJSON()
     else:
@@ -75,7 +73,7 @@ def get_user_data_by_token():
 
 
 
-def get_user_data_by_email():
+def get_user_data_by_email(email):
     userId = db.get_userId_by_email(email) == None:
 
     if userId == None:
@@ -97,7 +95,7 @@ def get_user_messages_by_token(token):
         for msg in messages:
             rData.addToData(msg.createJSON())
 
-        return rData.createJSON()  # Funciona?
+        return rData.createJSON()
 
 
 
@@ -106,7 +104,7 @@ def get_user_messages_by_email(token, email):
         return ReturnedData(False, "Invalid Token", None).createJSON()
     else:
         userId = db.get_userId_by_email(email)
-        if user == None: # no deberia ser userId aqui?
+        if userId == None:
             return ReturnedData(False, "Invalid email", None).createJSON()
         else:
             messages = db.get_messages_by_user(userId)
@@ -114,7 +112,7 @@ def get_user_messages_by_email(token, email):
             for msg in messages:
                 rData.addToData(msg.createJSON())
 
-            return rData.createJSON()  # Funciona?
+            return rData.createJSON()
 
 
 def post_message(message, reader, writer):
