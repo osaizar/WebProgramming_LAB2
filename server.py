@@ -54,20 +54,23 @@ def sign_in():
     valid, response = checker.check_sign_in_data()
     if not valid:
         return response
-    userId = db.get_userId_by_email(data["email"])
-    if userId == None:
-        return ReturnedData(False, "Email not found").createJSON()
-    elif db.get_user_by_id(userId).password != data["password"]:
-        return ReturnedData(False, "The password is not correct").createJSON()
-    else:
-        token = token_generator()
-        jToken = {}
-        jToken["token"] = token
-        jToken = json.dumps(jToken)
-        if db.insert_token(token, userId):
-            return ReturnedData(True, "User signed in", jToken).createJSON()
+    try:
+        userId = db.get_userId_by_email(data["email"])
+        if userId == None:
+            return ReturnedData(False, "Email not found").createJSON()
+        elif db.get_user_by_id(userId).password != data["password"]:
+            return ReturnedData(False, "The password is not correct").createJSON()
         else:
-            return ReturnedData(False, "Database error").createJSON()
+            token = token_generator()
+            jToken = {}
+            jToken["token"] = token
+            jToken = json.dumps(jToken)
+            if db.insert_token(token, userId):
+                return ReturnedData(True, "User signed in", jToken).createJSON()
+            else:
+                return ReturnedData(False, "Database error").createJSON()
+    except:
+        abort(500)
 
 
 @app.route("/sign_up", methods=["POST"])
@@ -76,109 +79,151 @@ def sign_up():
     valid, response = checker.check_sign_up_data(data)
     if not valid:
         return response
-    if db.get_userId_by_email(data["email"]) != None:  # no success
-        return ReturnedData(False, "Email already exists").createJSON()
-    else:
-        user = User(data["email"], data["password"], data["firstname"],
-                    data["familyname"], data["gender"], data["city"], data["country"])
-        if db.insert_user(user):
-            return ReturnedData(True, "User successfully created").createJSON()
+    try:
+        if db.get_userId_by_email(data["email"]) != None:  # no success
+            return ReturnedData(False, "Email already exists").createJSON()
         else:
-            return ReturnedData(False, "Database error").createJSON()
+            user = User(data["email"], data["password"], data["firstname"],
+                        data["familyname"], data["gender"], data["city"], data["country"])
+            if db.insert_user(user):
+                return ReturnedData(True, "User successfully created").createJSON()
+            else:
+                return ReturnedData(False, "Database error").createJSON()
+    except:
+        abort(500)
 
 @app.route("/sign_out", methods=["POST"])
 def sign_out():
     data = request.get_json(silent = True)
-    if db.delete_token(data["token"]):
-        return ReturnedData(True, "Signed out").createJSON()
-    else:
-        return ReturnedData(False, "Database error").createJSON()
+    valid, response = checker.check_token(data)
+    if not valid:
+        return response
+    try:
+        if db.delete_token(data["token"]):
+            return ReturnedData(True, "Signed out").createJSON()
+        else:
+            return ReturnedData(False, "Database error").createJSON()
+    except:
+        alert(500)
 
 
 @app.route("/change_password", methods=["POST"])
 def change_password():
     data = request.get_json(silent = True)
-
-    userId = db.get_userId_by_token(data["token"])
-    if userId == None:
-        return ReturnedData(False, "The token is not correct").createJSON()
-    elif db.get_user_by_id(userId).password != data["old_password"]:
-        return ReturnedData(False, "The password is not correct").createJSON()
-    else:
-        if db.change_user_password(userId, data["new_password"]):
-            return ReturnedData(True, "Password changed").createJSON()
+    valid, response = checker.check_change_password_data(data)
+    if not valid:
+        return response
+    try:
+        userId = db.get_userId_by_token(data["token"])
+        if userId == None:
+            return ReturnedData(False, "The token is not correct").createJSON()
+        elif db.get_user_by_id(userId).password != data["old_password"]:
+            return ReturnedData(False, "The password is not correct").createJSON()
         else:
-            return ReturnedData(False, "Database error").createJSON()
+            if db.change_user_password(userId, data["new_password"]):
+                return ReturnedData(True, "Password changed").createJSON()
+            else:
+                return ReturnedData(False, "Database error").createJSON()
+    except:
+        abort(500)
 
 @app.route("/get_user_data_by_token", methods=["POST"])
 def get_user_data_by_token():
     data = request.get_json(silent = True)
-    userId = db.get_userId_by_token(data["token"])
-    if userId == None:
-        return ReturnedData(False, "Invalid Token").createJSON()
-    else:
-        user = db.get_user_by_id(userId)
-        return ReturnedData(True, "User found", user.createJSON()).createJSON()
+    valid, response = checker.check_token(data)
+    if not valid:
+        return response
+    try:
+        userId = db.get_userId_by_token(data["token"])
+        if userId == None:
+            return ReturnedData(False, "Invalid Token").createJSON()
+        else:
+            user = db.get_user_by_id(userId)
+            return ReturnedData(True, "User found", user.createJSON()).createJSON()
+    except:
+        abort(500)
 
 
 @app.route("/get_user_by_email", methods=["POST"])
 def get_user_data_by_email():
     data = request.get_json(silent = True)
-    myUserId = db.get_userId_by_token(data["token"])
-    if myUserId  == None:
-        return ReturnedData(False, "Invalid Token").createJSON()
-    else:
-        userId = db.get_userId_by_email(data["email"])
-
-        if userId == None:
-            return ReturnedData(False, "Invalid email").createJSON()
+    valid, response = checker.check_token_and_email(data)
+    if not valid:
+        return response
+    try:
+        myUserId = db.get_userId_by_token(data["token"])
+        if myUserId  == None:
+            return ReturnedData(False, "Invalid Token").createJSON()
         else:
-            user = db.get_user_by_id(userId)
-            return ReturnedData(True, "User found", user.createJSON()).createJSON()
+            userId = db.get_userId_by_email(data["email"])
+            if userId == None:
+                return ReturnedData(False, "Invalid email").createJSON()
+            else:
+                user = db.get_user_by_id(userId)
+                return ReturnedData(True, "User found", user.createJSON()).createJSON()
+    except:
+        abort(500)
 
 @app.route("/get_user_messages_by_token", methods=["POST"])
 def get_user_messages_by_token():
     data = request.get_json(silent = True)
-    userId = db.get_userId_by_token(data["token"])
+    valid, response = checker.check_token(data)
+    if not valid:
+        return response
+    try:
+        userId = db.get_userId_by_token(data["token"])
 
-    if userId == None:
-        return ReturnedData(False, "Invalid Token").createJSON()
-    else:
-        messages = db.get_messages_by_user(userId)
-        return ReturnedData(True, "Messages found", messages.createJSON()).createJSON()
+        if userId == None:
+            return ReturnedData(False, "Invalid Token").createJSON()
+        else:
+            messages = db.get_messages_by_user(userId)
+            return ReturnedData(True, "Messages found", messages.createJSON()).createJSON()
+    except:
+        abort(500)
 
 
 @app.route("/get_user_messages_by_email", methods=["POST"])
 def get_user_messages_by_email():
     data = request.get_json(silent = True)
-
-    if db.get_userId_by_token(data["token"]) == None:
-        return ReturnedData(False, "Invalid Token").createJSON()
-    else:
-        userId = db.get_userId_by_email(data["email"])
-        if userId == None:
-            return ReturnedData(False, "Invalid email").createJSON()
+    valid, response = checker.check_token_and_email(data)
+    if not valid:
+        return response
+    try:
+        if db.get_userId_by_token(data["token"]) == None:
+            return ReturnedData(False, "Invalid Token").createJSON()
         else:
-            messages = db.get_messages_by_user(userId)
-            return ReturnedData(True, "Messages found", messages.createJSON()).createJSON()
+            userId = db.get_userId_by_email(data["email"])
+            if userId == None:
+                return ReturnedData(False, "Invalid email").createJSON()
+            else:
+                messages = db.get_messages_by_user(userId)
+                return ReturnedData(True, "Messages found", messages.createJSON()).createJSON()
+    except:
+        abort(500)
 
 @app.route("/send_message", methods=["POST"])
 def send_message():
     data = request.get_json(silent = True)
-    writerId = db.get_userId_by_token(data["token"])
-    writer = db.get_user_by_id(writerId)
+    valid, response = checker.check_send_message_data(data)
+    if not valid:
+        return response
+    try:
+        writerId = db.get_userId_by_token(data["token"])
+        writer = db.get_user_by_id(writerId)
 
-    msg = Message(writer.email, data["reader"], data["msg"])
-    toId = db.get_userId_by_email(msg.reader)
-    if toId == None:
-        return ReturnedData(False, "Invalid reader").createJSON()
+        msg = Message(writer.email, data["reader"], data["msg"])
+        toId = db.get_userId_by_email(msg.reader)
+        if toId == None:
+            return ReturnedData(False, "Invalid reader").createJSON()
 
-    fromId = db.get_userId_by_email(msg.writer)
-    if fromId == None:
-        return ReturnedData(False, "Invalid writer").createJSON()
-    else:
-        db.insert_message(msg)
-        return ReturnedData(True, "Message sent").createJSON()
+        fromId = db.get_userId_by_email(msg.writer)
+        if fromId == None:
+            return ReturnedData(False, "Invalid writer").createJSON()
+        else:
+            db.insert_message(msg)
+            return ReturnedData(True, "Message sent").createJSON()
+    except:
+        abort(500)
 
 if __name__ == "__main__":
     app.run()

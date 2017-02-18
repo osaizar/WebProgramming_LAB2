@@ -49,3 +49,39 @@ def check_sign_up_data(data):
         return False, ReturnedData(False, "The gender is not valid").createJSON()
     else:
         return True, None
+
+def check_change_password_data(data):
+    if data == None:
+        abort(400)
+    elif data["token"] == None or data["old_password"] == None or data["new_password"] == None:
+        abort(400)
+    elif len(data["new_password"]) < 6:
+        return False, ReturnedData(False, "The password is too short").createJSON()
+    else:
+        return True, None
+
+def check_token(data):
+    if data == None:
+        abort(400)
+    elif data["token"] == None:
+        abort(400)
+    else:
+        return True, None
+
+def check_token_and_email(data):
+    if data == None:
+        abort(400)
+    elif data["token"] == None or data["email"] == None:
+        abort(400)
+    else:
+        return True, None
+
+def check_send_message_data(data):
+    if data == None:
+        abort(400)
+    elif data["token"] == None or data["msg"] == None or data["reader"] == None:
+        abort(400)
+    elif (not data["msg"]) or data["msg"].isspace():
+        return False, ReturnedData(False, "The message is too short").createJSON()
+    else:
+        return True, None
