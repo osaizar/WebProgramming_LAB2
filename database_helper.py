@@ -39,9 +39,7 @@ def insert_user(user):
                                                                    user.familyname, user.gender, user.city, user.country,
                                                                    user.email, user.password))
     if cur.rowcount == 1:
-        return Texcept:
-        abort(500)except:
-        abort(500)
+        return True
     else:
         return False
 

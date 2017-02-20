@@ -21,7 +21,6 @@ def check_sign_in_data(data):
             return False, ReturnedData(False, "Fill all fields").createJSON()
     except:
         abort(400)
-    # Check spaces?
     return True, None
 
 
