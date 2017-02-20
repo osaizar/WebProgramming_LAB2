@@ -51,7 +51,7 @@ def token_generator(size=15, chars=string.ascii_uppercase + string.digits):
 @app.route("/sign_in", methods=["POST"])
 def sign_in():
     data = request.get_json(silent = True) # get data
-    valid, response = checker.check_sign_in_data()
+    valid, response = checker.check_sign_in_data(data)
     if not valid:
         return response
     try:
