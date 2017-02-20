@@ -13,10 +13,6 @@ from Message import Message, MessageList
 from ReturnedData import ReturnedData
 
 
-# TODO: all request are POST,Why?
-# TODO: Checker on all requests
-# TODO: Try except
-
 app = Flask(__name__)
 
 # START route declarations
@@ -65,10 +61,8 @@ def sign_in():
             jToken = {}
             jToken["token"] = token
             jToken = json.dumps(jToken)
-            if db.insert_token(token, userId):
-                return ReturnedData(True, "User signed in", jToken).createJSON()
-            else:
-                return ReturnedData(False, "Database error").createJSON()
+            db.insert_token(token, userId)
+            return ReturnedData(True, "User signed in", jToken).createJSON()
     except:
         abort(500)
 
@@ -85,10 +79,8 @@ def sign_up():
         else:
             user = User(data["email"], data["password"], data["firstname"],
                         data["familyname"], data["gender"], data["city"], data["country"])
-            if db.insert_user(user):
-                return ReturnedData(True, "User successfully created").createJSON()
-            else:
-                return ReturnedData(False, "Database error").createJSON()
+            db.insert_user(user)
+            return ReturnedData(True, "User successfully created").createJSON()
     except:
         abort(500)
 
@@ -102,7 +94,7 @@ def sign_out():
         if db.delete_token(data["token"]):
             return ReturnedData(True, "Signed out").createJSON()
         else:
-            return ReturnedData(False, "Database error").createJSON()
+            return ReturnedData(False, "You are not logged in (Invalid token)").createJSON()
     except:
         alert(500)
 
@@ -120,10 +112,8 @@ def change_password():
         elif db.get_user_by_id(userId).password != data["old_password"]:
             return ReturnedData(False, "The password is not correct").createJSON()
         else:
-            if db.change_user_password(userId, data["new_password"]):
-                return ReturnedData(True, "Password changed").createJSON()
-            else:
-                return ReturnedData(False, "Database error").createJSON()
+            db.change_user_password(userId, data["new_password"])
+            return ReturnedData(True, "Password changed").createJSON()
     except:
         abort(500)
 
@@ -136,7 +126,7 @@ def get_user_data_by_token():
     try:
         userId = db.get_userId_by_token(data["token"])
         if userId == None:
-            return ReturnedData(False, "Invalid Token").createJSON()
+            return ReturnedData(False, "You are not logged in (Invalid token)").createJSON()
         else:
             user = db.get_user_by_id(userId)
             return ReturnedData(True, "User found", user.createJSON()).createJSON()
@@ -144,7 +134,7 @@ def get_user_data_by_token():
         abort(500)
 
 
-@app.route("/get_user_by_email", methods=["POST"])
+@app.route("/get_user_data_by_email", methods=["POST"]) #TODO: Name changed, remember to change it on lab3
 def get_user_data_by_email():
     data = request.get_json(silent = True)
     valid, response = checker.check_token_and_email(data)
@@ -153,7 +143,7 @@ def get_user_data_by_email():
     try:
         myUserId = db.get_userId_by_token(data["token"])
         if myUserId  == None:
-            return ReturnedData(False, "Invalid Token").createJSON()
+            return ReturnedData(False, "You are not logged in (Invalid token)").createJSON()
         else:
             userId = db.get_userId_by_email(data["email"])
             if userId == None:
@@ -174,7 +164,7 @@ def get_user_messages_by_token():
         userId = db.get_userId_by_token(data["token"])
 
         if userId == None:
-            return ReturnedData(False, "Invalid Token").createJSON()
+            return ReturnedData(False, "You are not logged in (Invalid token)").createJSON()
         else:
             messages = db.get_messages_by_user(userId)
             return ReturnedData(True, "Messages found", messages.createJSON()).createJSON()
@@ -190,7 +180,7 @@ def get_user_messages_by_email():
         return response
     try:
         if db.get_userId_by_token(data["token"]) == None:
-            return ReturnedData(False, "Invalid Token").createJSON()
+            return ReturnedData(False, "You are not logged in (Invalid token)").createJSON()
         else:
             userId = db.get_userId_by_email(data["email"])
             if userId == None:
@@ -209,6 +199,9 @@ def send_message():
         return response
     try:
         writerId = db.get_userId_by_token(data["token"])
+        if writerId == None:
+            return ReturnedData(False, "You are not logged in (You are not logged in (Invalid token))").createJSON()
+
         writer = db.get_user_by_id(writerId)
 
         msg = Message(writer.email, data["reader"], data["msg"])

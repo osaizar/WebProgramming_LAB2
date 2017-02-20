@@ -39,7 +39,9 @@ def insert_user(user):
                                                                    user.familyname, user.gender, user.city, user.country,
                                                                    user.email, user.password))
     if cur.rowcount == 1:
-        return True
+        return Texcept:
+        abort(500)except:
+        abort(500)
     else:
         return False
 
@@ -56,7 +58,7 @@ def get_user_by_id(userId):
     return user
 
 
-def get_userId_by_email(email):  # TODO: check get
+def get_userId_by_email(email):
     cur = run_query("SELECT id FROM User WHERE User.email = '%s'" % email)
     result = cur.fetchone()
     if result:
@@ -117,7 +119,7 @@ def delete_token(token):
         return False
 
 
-def insert_message(message):  # TODO: Check users
+def insert_message(message):
     toId = get_userId_by_email(message.reader)
     fromId = get_userId_by_email(message.writer)
 
