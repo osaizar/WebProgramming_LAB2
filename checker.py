@@ -53,9 +53,13 @@ def check_sign_up_data(data):
 def check_change_password_data(data):
     if data == None:
         abort(400)
-    elif data["token"] == None or data["old_password"] == None or data["new_password"] == None:
+    try:
+        if not (data["token"] and data["old_password"] and data["new_password"]):
+            abort(400)
+    except:
         abort(400)
-    elif len(data["new_password"]) < 6:
+
+    if len(data["new_password"]) < 6:
         return False, ReturnedData(False, "The password is too short").createJSON()
     else:
         return True, None
@@ -63,25 +67,37 @@ def check_change_password_data(data):
 def check_token(data):
     if data == None:
         abort(400)
-    elif data["token"] == None:
+    try:
+        if not (data["token"]):
+            abort(400)
+    except:
         abort(400)
-    else:
-        return True, None
+
+    return True, None
 
 def check_token_and_email(data):
     if data == None:
         abort(400)
-    elif data["token"] == None or data["email"] == None:
+    try:
+        if not (data["token"] and data["email"]):
+            abort(400)
+    except:
         abort(400)
-    else:
-        return True, None
+
+    return True, None
+
+
 
 def check_send_message_data(data):
     if data == None:
         abort(400)
-    elif data["token"] == None or data["msg"] == None or data["reader"] == None:
+    try:
+        if not (data["token"] and data["msg"] and data["reader"]):
+            abort(400)
+    except:
         abort(400)
-    elif (not data["msg"]) or data["msg"].isspace():
+
+    if data["msg"].isspace():
         return False, ReturnedData(False, "The message is too short").createJSON()
     else:
         return True, None
